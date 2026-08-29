@@ -1,15 +1,22 @@
 package com.madmandriver.ui.screens
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.AssistChip
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
@@ -21,7 +28,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.madmandriver.city.City
 import com.madmandriver.city.TransitMode
@@ -65,9 +76,19 @@ fun RideDetailsEditor(
 
         val suggestions = city.suggestedLines[mode].orEmpty()
         if (suggestions.isNotEmpty()) {
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                val current = line.trim()
                 suggestions.forEach { s ->
-                    AssistChip(onClick = { onLineChange(s) }, label = { Text(s) })
+                    LineChip(
+                        line = s,
+                        color = Color(city.lineColorArgb(s)),
+                        selected = s == current,
+                        onClick = { onLineChange(s) },
+                    )
                 }
             }
         }
@@ -81,6 +102,35 @@ fun RideDetailsEditor(
             },
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
+        )
+    }
+}
+
+/**
+ * Line number badge in the operator's own livery — colours mirror the line
+ * badges on the city's transit portal, so the chip looks like the number the
+ * passenger sees on the vehicle. White text is what the portal pairs with every
+ * one of these colours.
+ */
+@Composable
+private fun LineChip(line: String, color: Color, selected: Boolean, onClick: () -> Unit) {
+    val shape = RoundedCornerShape(8.dp)
+    val outline = MaterialTheme.colorScheme.onSurface
+    Box(
+        modifier = Modifier
+            .defaultMinSize(minWidth = 56.dp, minHeight = 48.dp)
+            .clip(shape)
+            .background(color)
+            .then(if (selected) Modifier.border(3.dp, outline, shape) else Modifier)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 12.dp, vertical = 12.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            line,
+            color = Color.White,
+            fontWeight = FontWeight.Bold,
+            style = MaterialTheme.typography.titleMedium,
         )
     }
 }
