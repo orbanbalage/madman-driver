@@ -112,6 +112,10 @@ interface RideDao {
     @Query("SELECT * FROM events WHERE rideId = :rideId ORDER BY occurredAtUtcMs ASC")
     suspend fun eventsForRide(rideId: Long): List<HarshEventEntity>
 
+    /** Corrects the ride's identifying details after recording (wrong line picked, vehicle number noticed later). */
+    @Query("UPDATE rides SET mode = :mode, line = :line, vehicleNumber = :vehicleNumber WHERE id = :rideId")
+    suspend fun updateRideDetails(rideId: Long, mode: String, line: String, vehicleNumber: String?)
+
     @Query("DELETE FROM rides WHERE id = :rideId")
     suspend fun deleteRide(rideId: Long)
 

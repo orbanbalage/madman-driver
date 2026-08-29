@@ -10,8 +10,6 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -26,16 +24,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Stop
-import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -71,7 +63,6 @@ fun RecordScreen() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 private fun RideSetup() {
     val context = LocalContext.current
@@ -107,42 +98,14 @@ private fun RideSetup() {
             }
         }
 
-        SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
-            city.modes.forEachIndexed { index, m ->
-                SegmentedButton(
-                    selected = mode == m,
-                    onClick = { mode = m },
-                    shape = SegmentedButtonDefaults.itemShape(index = index, count = city.modes.size),
-                ) {
-                    Text(m.label)
-                }
-            }
-        }
-
-        OutlinedTextField(
-            value = line,
-            onValueChange = { line = it },
-            label = { Text("Line number") },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
-        )
-
-        val suggestions = city.suggestedLines[mode].orEmpty()
-        if (suggestions.isNotEmpty()) {
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                suggestions.forEach { s ->
-                    AssistChip(onClick = { line = s }, label = { Text(s) })
-                }
-            }
-        }
-
-        OutlinedTextField(
-            value = vehicle,
-            onValueChange = { vehicle = it },
-            label = { Text("Vehicle number (optional)") },
-            supportingText = { Text("Fleet number printed on the vehicle — helps the operator identify the driver") },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
+        RideDetailsEditor(
+            city = city,
+            mode = mode,
+            onModeChange = { mode = it },
+            line = line,
+            onLineChange = { line = it },
+            vehicleNumber = vehicle,
+            onVehicleNumberChange = { vehicle = it },
         )
 
         Button(
@@ -164,7 +127,8 @@ private fun RideSetup() {
 
         Text(
             "Keep the phone still (pocket, bag or hand) during the ride. Location permission is " +
-                "recommended so each event carries GPS coordinates and speed.",
+                "recommended so each event carries GPS coordinates and speed. Line and vehicle " +
+                "number can still be corrected after the ride.",
             style = MaterialTheme.typography.bodySmall,
         )
     }

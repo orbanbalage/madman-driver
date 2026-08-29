@@ -16,6 +16,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.AlertDialog
@@ -61,6 +62,7 @@ fun RideDetailScreen(rideId: Long, onBack: () -> Unit) {
         traceSamples.map { TracePoint(it.tMs, it.accelMps2) }
     }
     var showDeleteDialog by remember { mutableStateOf(false) }
+    var showEditDialog by remember { mutableStateOf(false) }
 
     val currentRide = ride ?: return
     val city = CityCatalog.byId(currentRide.cityId)
@@ -76,6 +78,9 @@ fun RideDetailScreen(rideId: Long, onBack: () -> Unit) {
                     }
                 },
                 actions = {
+                    IconButton(onClick = { showEditDialog = true }) {
+                        Icon(Icons.Default.Edit, contentDescription = "Edit ride details")
+                    }
                     IconButton(onClick = { showDeleteDialog = true }) {
                         Icon(Icons.Default.Delete, contentDescription = "Delete ride")
                     }
@@ -96,9 +101,10 @@ fun RideDetailScreen(rideId: Long, onBack: () -> Unit) {
                         "${city.name} · ${Fmt.dateTime(currentRide.startedAtUtcMs, city.timeZone)}",
                         style = MaterialTheme.typography.titleMedium,
                     )
-                    currentRide.vehicleNumber?.let {
-                        Text("Vehicle $it", style = MaterialTheme.typography.bodyMedium)
-                    }
+                    Text(
+                        currentRide.vehicleNumber?.let { "Vehicle $it" } ?: "Vehicle number not set",
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
                     val end = currentRide.endedAtUtcMs
                     if (end != null) {
                         Text(
@@ -174,6 +180,22 @@ fun RideDetailScreen(rideId: Long, onBack: () -> Unit) {
                 }
             }
         }
+    }
+
+    if (showEditDialog) {
+        EditRideDialog(
+            city = city,
+            initialMode = mode,
+            initialLine = currentRide.line,
+            initialVehicleNumber = currentRide.vehicleNumber,
+            onDismiss = { showEditDialog = false },
+            onSave = { newMode, newLine, newVehicle ->
+                showEditDialog = false
+                scope.launch {
+                    Graph.db.rideDao().updateRideDetails(rideId, newMode.name, newLine, newVehicle)
+                }
+            },
+        )
     }
 
     if (showDeleteDialog) {
