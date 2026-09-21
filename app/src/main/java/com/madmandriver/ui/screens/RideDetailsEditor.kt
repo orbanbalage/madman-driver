@@ -12,7 +12,7 @@ import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -34,6 +34,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.madmandriver.city.City
 import com.madmandriver.city.TransitMode
 
@@ -78,8 +79,8 @@ fun RideDetailsEditor(
         if (suggestions.isNotEmpty()) {
             FlowRow(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(BadgeGap, Alignment.CenterHorizontally),
+                verticalArrangement = Arrangement.spacedBy(BadgeGap),
             ) {
                 val current = line.trim()
                 suggestions.forEach { s ->
@@ -106,31 +107,42 @@ fun RideDetailsEditor(
     }
 }
 
+/*
+ * Badge geometry lifted from imhd.sk's own line badges, measured on its mobile
+ * layout (375 px viewport, where 1 CSS px maps to 1 dp): a 35.15 px box whose
+ * 19 px radius makes it a full circle, holding 19 px bold Roboto — Android's
+ * default face — in white, with 2.375 px of inner padding and 3.8 px of margin
+ * per side, so adjacent badges sit 7.6 px apart.
+ */
+private val BadgeSize = 35.15f.dp
+private val BadgePadding = 2.375f.dp
+private val BadgeGap = 7.6f.dp
+private val BadgeFontSize = 19f.sp
+
 /**
- * Line number badge in the operator's own livery — colours mirror the line
- * badges on the city's transit portal, so the chip looks like the number the
- * passenger sees on the vehicle. White text is what the portal pairs with every
- * one of these colours.
+ * Line number badge in the operator's own livery, sized to match the badges on
+ * the city's transit portal, so the chip reads like the number on the front of
+ * the vehicle. [defaultMinSize] rather than a fixed size so the circle can still
+ * grow at large system font scales instead of clipping the digits.
  */
 @Composable
 private fun LineChip(line: String, color: Color, selected: Boolean, onClick: () -> Unit) {
-    val shape = RoundedCornerShape(8.dp)
     val outline = MaterialTheme.colorScheme.onSurface
     Box(
         modifier = Modifier
-            .defaultMinSize(minWidth = 56.dp, minHeight = 48.dp)
-            .clip(shape)
+            .defaultMinSize(minWidth = BadgeSize, minHeight = BadgeSize)
+            .clip(CircleShape)
             .background(color)
-            .then(if (selected) Modifier.border(3.dp, outline, shape) else Modifier)
+            .then(if (selected) Modifier.border(2.dp, outline, CircleShape) else Modifier)
             .clickable(onClick = onClick)
-            .padding(horizontal = 12.dp, vertical = 12.dp),
+            .padding(BadgePadding),
         contentAlignment = Alignment.Center,
     ) {
         Text(
             line,
             color = Color.White,
+            fontSize = BadgeFontSize,
             fontWeight = FontWeight.Bold,
-            style = MaterialTheme.typography.titleMedium,
         )
     }
 }
