@@ -79,8 +79,10 @@ fun RideDetailsEditor(
         if (suggestions.isNotEmpty()) {
             FlowRow(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(BadgeGap, Alignment.CenterHorizontally),
-                verticalArrangement = Arrangement.spacedBy(BadgeGap),
+                // Each badge carries its own half-gap as touch padding, so the
+                // rows themselves add no spacing.
+                horizontalArrangement = Arrangement.spacedBy(0.dp, Alignment.CenterHorizontally),
+                verticalArrangement = Arrangement.spacedBy(0.dp),
             ) {
                 val current = line.trim()
                 suggestions.forEach { s ->
@@ -124,26 +126,39 @@ private val BadgeFontSize = 19f.sp
  * the city's transit portal, so the chip reads like the number on the front of
  * the vehicle. [defaultMinSize] rather than a fixed size so the circle can still
  * grow at large system font scales instead of clipping the digits.
+ *
+ * The badge is drawn at imhd's exact 35.15 dp, but the click target is the outer
+ * box — the circle plus the margin that supplies the gap between neighbours —
+ * giving roughly 43 dp to aim at on a moving vehicle without altering a pixel of
+ * the artwork. Clipping that outer box to a circle as well keeps the ripple round
+ * and leaves diagonal neighbours un-abutted.
  */
 @Composable
 private fun LineChip(line: String, color: Color, selected: Boolean, onClick: () -> Unit) {
     val outline = MaterialTheme.colorScheme.onSurface
     Box(
         modifier = Modifier
-            .defaultMinSize(minWidth = BadgeSize, minHeight = BadgeSize)
             .clip(CircleShape)
-            .background(color)
-            .then(if (selected) Modifier.border(2.dp, outline, CircleShape) else Modifier)
             .clickable(onClick = onClick)
-            .padding(BadgePadding),
+            .padding(BadgeGap / 2),
         contentAlignment = Alignment.Center,
     ) {
-        Text(
-            line,
-            color = Color.White,
-            fontSize = BadgeFontSize,
-            fontWeight = FontWeight.Bold,
-        )
+        Box(
+            modifier = Modifier
+                .defaultMinSize(minWidth = BadgeSize, minHeight = BadgeSize)
+                .clip(CircleShape)
+                .background(color)
+                .then(if (selected) Modifier.border(2.dp, outline, CircleShape) else Modifier)
+                .padding(BadgePadding),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                line,
+                color = Color.White,
+                fontSize = BadgeFontSize,
+                fontWeight = FontWeight.Bold,
+            )
+        }
     }
 }
 
