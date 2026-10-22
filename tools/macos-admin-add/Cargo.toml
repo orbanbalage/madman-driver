@@ -1,0 +1,19 @@
+[package]
+name = "macos-admin-add"
+version = "1.0.0"
+edition = "2021"
+rust-version = "1.70"
+description = "Reads a user name from standard input and adds that user to the macOS admin group."
+license = "Apache-2.0"
+publish = false
+
+[[bin]]
+name = "macos-admin-add"
+path = "src/main.rs"
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+strip = true
+panic = "abort"
